@@ -39,6 +39,30 @@ target_compile_features(mfx-base-app_exe PRIVATE c_std_99)
 
 target_link_libraries(mfx-base-app_exe PRIVATE mfx-base-app_lib)
 
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    add_custom_target(hererocks ALL
+        COMMAND python ${CMAKE_SOURCE_DIR}/hererocks.py prefix --target vs -j @v2.1 -rlatest --verbose
+        COMMAND prefix/bin/luarocks.bat install inspect
+        COMMAND prefix/bin/luarocks.bat install luasocket
+        COMMAND prefix/bin/luarocks.bat install rxi-json-lua
+        COMMAND prefix/bin/luarocks.bat install penlight
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    )
+else()
+    add_custom_target(hererocks ALL
+        COMMAND python ${CMAKE_SOURCE_DIR}/hererocks.py prefix -j @v2.1 -rlatest --verbose
+        COMMAND prefix/bin/luarocks install inspect
+        COMMAND prefix/bin/luarocks install luasocket
+        COMMAND prefix/bin/luarocks install luaposix
+        COMMAND prefix/bin/luarocks install rxi-json-lua
+        COMMAND prefix/bin/luarocks install penlight
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    )
+endif()
+
+add_dependencies(mfx-base-app_exe hererocks)
+add_dependencies(mfx-base-app_lib hererocks)
+
 # ---- Install rules ----
 
 if(NOT CMAKE_SKIP_INSTALL_RULES)
