@@ -105,20 +105,16 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install static analyzers
-      if: matrix.os == 'ubuntu-22.04'
-      run: >-
-        sudo apt-get install clang-tidy-14 cppcheck -y -q
-
-        sudo update-alternatives --install
-        /usr/bin/clang-tidy clang-tidy
-        /usr/bin/clang-tidy-14 140
-
     - name: Setup MultiToolTask
       if: matrix.os == 'windows-2022'
       run: |
         Add-Content "$env:GITHUB_ENV" 'UseMultiToolTask=true'
         Add-Content "$env:GITHUB_ENV" 'EnforceProcessCountAcrossBuilds=true'
+
+    - name: Set MACOSX_DEPLOYMENT_TARGET
+      if: runner.os == 'macOS'
+      run: |
+        echo 'MACOSX_DEPLOYMENT_TARGET=14.0' >> $GITHUB_ENV
 
     - name: Configure
       shell: pwsh
