@@ -63,11 +63,13 @@ target_compile_features(mfx-base-app_exe PRIVATE c_std_99)
 
 target_link_libraries(mfx-base-app_exe PRIVATE mfx-base-app_lib)
 
+set(LUAROCKS prefix/bin/luarocks)
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     add_custom_target(hererocks ALL
         COMMAND python ${CMAKE_SOURCE_DIR}/hererocks.py prefix --target vs -j @v2.1 -rlatest --verbose
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
+    set(LUAROCKS prefix/bin/luarocks.bat)
 else()
     add_custom_target(hererocks ALL
         COMMAND python ${CMAKE_SOURCE_DIR}/hererocks.py prefix -j @v2.1 -rlatest --verbose
@@ -77,38 +79,34 @@ else()
 endif()
 
 add_custom_target(luarocks_modules ALL
-    COMMAND prefix/bin/luarocks install inspect
-    COMMAND prefix/bin/luarocks install luasocket
-    COMMAND prefix/bin/luarocks install rxi-json-lua
-    COMMAND prefix/bin/luarocks install penlight
-    COMMAND prefix/bin/luarocks install lua-path
-    COMMAND prefix/bin/luarocks install lpeg
-    COMMAND prefix/bin/luarocks install lua-llthreads2
-    COMMAND prefix/bin/luarocks install ldoc
-    COMMAND prefix/bin/luarocks install etlua
-    COMMAND prefix/bin/luarocks install luasec
-    COMMAND prefix/bin/luarocks install fun
-    COMMAND prefix/bin/luarocks install markdown
-    COMMAND prefix/bin/luarocks install argparse
-    COMMAND prefix/bin/luarocks install environ
-    COMMAND prefix/bin/luarocks install middleclass
-    COMMAND prefix/bin/luarocks install lua-log
-    COMMAND prefix/bin/luarocks install https://raw.githubusercontent.com/Simon-L/ltui/master/rockspec/ltui-2.8-1.rockspec
+    COMMAND ${LUAROCKS} install inspect
+    COMMAND ${LUAROCKS} install luasocket
+    COMMAND ${LUAROCKS} install rxi-json-lua
+    COMMAND ${LUAROCKS} install penlight
+    COMMAND ${LUAROCKS} install lua-path
+    COMMAND ${LUAROCKS} install lpeg
+    COMMAND ${LUAROCKS} install lua-llthreads2
+    COMMAND ${LUAROCKS} install ldoc
+    COMMAND ${LUAROCKS} install etlua
+    COMMAND ${LUAROCKS} install luasec
+    COMMAND ${LUAROCKS} install fun
+    COMMAND ${LUAROCKS} install markdown
+    COMMAND ${LUAROCKS} install argparse
+    COMMAND ${LUAROCKS} install environ
+    COMMAND ${LUAROCKS} install middleclass
+    COMMAND ${LUAROCKS} install lua-log
+    # COMMAND ${LUAROCKS} install https://raw.githubusercontent.com/Simon-L/ltui/master/rockspec/ltui-2.8-1.rockspec
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
-add_custom_target(add_imgui_1
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/ig   
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-)
 add_custom_target(add_imgui ALL
-    DEPENDS add_imgui_1
-    COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_BINARY_DIR}/${FILE_IMGUI}
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/ig/lua ${CMAKE_BINARY_DIR}/prefix/share/lua/5.1
-    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/ig/lua
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/ig ${CMAKE_BINARY_DIR}/prefix/bin
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/ig   
+    COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_BINARY_DIR}/ig ${CMAKE_COMMAND} -E tar xzf ${CMAKE_BINARY_DIR}/${FILE_IMGUI}
+    COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_BINARY_DIR}/ig ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/ig/lua ${CMAKE_BINARY_DIR}/prefix/share/lua/5.1
+    COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_BINARY_DIR}/ig ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/ig/lua
+    COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_BINARY_DIR}/ig ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/ig ${CMAKE_BINARY_DIR}/prefix/bin
     # COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/ig
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/ig
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
 add_dependencies(luarocks_modules hererocks)
