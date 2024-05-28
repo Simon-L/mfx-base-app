@@ -97,7 +97,6 @@ add_custom_target(luarocks_modules ALL
     COMMAND ${LUAROCKS} install environ
     COMMAND ${LUAROCKS} install middleclass
     COMMAND ${LUAROCKS} install lua-log
-    # COMMAND ${LUAROCKS} install https://raw.githubusercontent.com/Simon-L/ltui/master/rockspec/ltui-2.8-1.rockspec
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
