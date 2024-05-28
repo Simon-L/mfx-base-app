@@ -66,23 +66,36 @@ target_link_libraries(mfx-base-app_exe PRIVATE mfx-base-app_lib)
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     add_custom_target(hererocks ALL
         COMMAND python ${CMAKE_SOURCE_DIR}/hererocks.py prefix --target vs -j @v2.1 -rlatest --verbose
-        COMMAND prefix/bin/luarocks.bat install inspect
-        COMMAND prefix/bin/luarocks.bat install luasocket
-        COMMAND prefix/bin/luarocks.bat install rxi-json-lua
-        COMMAND prefix/bin/luarocks.bat install penlight
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
 else()
     add_custom_target(hererocks ALL
         COMMAND python ${CMAKE_SOURCE_DIR}/hererocks.py prefix -j @v2.1 -rlatest --verbose
-        COMMAND prefix/bin/luarocks install inspect
-        COMMAND prefix/bin/luarocks install luasocket
         COMMAND prefix/bin/luarocks install luaposix
-        COMMAND prefix/bin/luarocks install rxi-json-lua
-        COMMAND prefix/bin/luarocks install penlight
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
 endif()
+
+add_custom_target(luarocks_modules ALL
+    COMMAND prefix/bin/luarocks install inspect
+    COMMAND prefix/bin/luarocks install luasocket
+    COMMAND prefix/bin/luarocks install rxi-json-lua
+    COMMAND prefix/bin/luarocks install penlight
+    COMMAND prefix/bin/luarocks install lua-path
+    COMMAND prefix/bin/luarocks install lpeg
+    COMMAND prefix/bin/luarocks install lua-llthreads2
+    COMMAND prefix/bin/luarocks install ldoc
+    COMMAND prefix/bin/luarocks install etlua
+    COMMAND prefix/bin/luarocks install luasec
+    COMMAND prefix/bin/luarocks install fun
+    COMMAND prefix/bin/luarocks install markdown
+    COMMAND prefix/bin/luarocks install argparse
+    COMMAND prefix/bin/luarocks install environ
+    COMMAND prefix/bin/luarocks install middleclass
+    COMMAND prefix/bin/luarocks install lua-log
+    COMMAND prefix/bin/luarocks install https://raw.githubusercontent.com/Simon-L/ltui/master/rockspec/ltui-2.8-1.rockspec
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
 
 add_custom_target(add_imgui_1
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/ig   
@@ -98,6 +111,7 @@ add_custom_target(add_imgui ALL
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/ig
 )
 
+add_dependencies(luarocks_modules hererocks)
 add_dependencies(add_imgui hererocks)
 add_dependencies(mfx-base-app_exe hererocks)
 add_dependencies(mfx-base-app_lib hererocks)
