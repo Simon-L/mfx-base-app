@@ -71,7 +71,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
     set(LUAROCKS prefix/bin/luarocks.bat)
-    set(OPENSSL_OPTS OPENSSL_DIR=C:\Program Files\OpenSSL)
+    set(OPENSSL_OPTS OPENSSL_DIR="C:/Program Files/OpenSSL")
 else()
     add_custom_target(hererocks ALL
         COMMAND python ${CMAKE_SOURCE_DIR}/hererocks.py prefix -j @v2.1 -rlatest --verbose
