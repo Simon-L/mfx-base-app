@@ -64,12 +64,14 @@ target_compile_features(mfx-base-app_exe PRIVATE c_std_99)
 target_link_libraries(mfx-base-app_exe PRIVATE mfx-base-app_lib)
 
 set(LUAROCKS prefix/bin/luarocks)
+set(OPENSSL_OPTS )
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     add_custom_target(hererocks ALL
         COMMAND python ${CMAKE_SOURCE_DIR}/hererocks.py prefix --target vs -j @v2.1 -rlatest --verbose
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
     set(LUAROCKS prefix/bin/luarocks.bat)
+    set(OPENSSL_OPTS "OPENSSL_DIR=\"C:\Program Files\OpenSSL\"")
 else()
     add_custom_target(hererocks ALL
         COMMAND python ${CMAKE_SOURCE_DIR}/hererocks.py prefix -j @v2.1 -rlatest --verbose
@@ -88,7 +90,7 @@ add_custom_target(luarocks_modules ALL
     COMMAND ${LUAROCKS} install lua-llthreads2
     COMMAND ${LUAROCKS} install ldoc
     COMMAND ${LUAROCKS} install etlua
-    COMMAND ${LUAROCKS} install luasec
+    COMMAND ${LUAROCKS} install luasec ${OPENSSL_OPTS}
     COMMAND ${LUAROCKS} install fun
     COMMAND ${LUAROCKS} install markdown
     COMMAND ${LUAROCKS} install argparse
