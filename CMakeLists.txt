@@ -39,18 +39,18 @@ file(
 
 # ---- Declare library ----
 
-add_library(
-    mfx-base-app_lib OBJECT
-    source/lib.c
-)
-
-target_include_directories(
-    mfx-base-app_lib ${warning_guard}
-    PUBLIC
-    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/source>"
-)
-
-target_compile_features(mfx-base-app_lib PUBLIC c_std_99)
+# add_library(
+#     mfx-base-app_lib OBJECT
+#     source/lib.c
+# )
+# 
+# target_include_directories(
+#     mfx-base-app_lib ${warning_guard}
+#     PUBLIC
+#     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/source>"
+# )
+# 
+# target_compile_features(mfx-base-app_lib PUBLIC c_std_99)
 
 # ---- Declare executable ----
 
@@ -61,7 +61,7 @@ set_property(TARGET mfx-base-app_exe PROPERTY OUTPUT_NAME mfx-base-app)
 
 target_compile_features(mfx-base-app_exe PRIVATE c_std_99)
 
-target_link_libraries(mfx-base-app_exe PRIVATE mfx-base-app_lib)
+# target_link_libraries(mfx-base-app_exe PRIVATE mfx-base-app_lib)
 
 set(LUAROCKS prefix/bin/luarocks)
 set(OPENSSL_OPTS )
@@ -106,14 +106,13 @@ add_custom_target(add_imgui ALL
     COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_BINARY_DIR}/ig ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/ig/lua ${CMAKE_BINARY_DIR}/prefix/share/lua/5.1
     COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_BINARY_DIR}/ig ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/ig/lua
     COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_BINARY_DIR}/ig ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/ig ${CMAKE_BINARY_DIR}/prefix/bin
-    # COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/ig
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
 add_dependencies(luarocks_modules hererocks)
 add_dependencies(add_imgui hererocks)
 add_dependencies(mfx-base-app_exe hererocks)
-add_dependencies(mfx-base-app_lib hererocks)
+# add_dependencies(mfx-base-app_lib hererocks)
 
 # ---- Install rules ----
 
