@@ -7,7 +7,7 @@ project(mfx-base-appTests LANGUAGES C)
 # ---- Tests ----
 
 add_executable(mfx-base-app_test source/mfx-base-app_test.c)
-target_link_libraries(mfx-base-app_test PRIVATE mfx-base-app_lib)
+# target_link_libraries(mfx-base-app_test PRIVATE mfx-base-app_lib)
 target_compile_features(mfx-base-app_test PRIVATE c_std_99)
 
 add_test(NAME mfx-base-app_test COMMAND mfx-base-app_test)
