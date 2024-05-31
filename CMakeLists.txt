@@ -24,7 +24,7 @@ endif()
 
 # URLs
 if (${PREFIX_SYSTEM} STREQUAL "Windows")
-    set(FILE_IMGUI lua-imgui-win64.zip)
+    set(FILE_IMGUI lua-imgui-windows.zip)
 elseif (${PREFIX_SYSTEM} STREQUAL "Linux")
     set(FILE_IMGUI lua-imgui-ubuntu.zip)
 elseif (${PREFIX_SYSTEM} STREQUAL "Darwin")
