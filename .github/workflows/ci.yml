@@ -100,7 +100,14 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-12, ubuntu-22.04, windows-2022]
+        os: [macos-13, ubuntu-22.04, windows-2022]
+        include:
+          - os: macos-13
+            out-dir-suffix: macos
+          - os: ubuntu-22.04
+            out-dir-suffix: ubuntu
+          - os: windows-2022
+            out-dir-suffix: windows
 
     runs-on: ${{ matrix.os }}
 
@@ -130,7 +137,7 @@ jobs:
 
     - uses: actions/upload-artifact@v4
       with:
-        name: mfx-base-app-${{ matrix.os }}
+        name: mfx-base-app-${{ matrix.out-dir-suffix }}
         path: ${{ github.workspace }}/build/prefix/
 
     # - name: Test
