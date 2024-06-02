@@ -120,6 +120,7 @@ endif()
 add_custom_target(add_app ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/app ${CMAKE_BINARY_DIR}/prefix/app
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/${APP_FILE} ${CMAKE_BINARY_DIR}/prefix/
+    COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_BINARY_DIR}/prefix/hererocks.manifest
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
