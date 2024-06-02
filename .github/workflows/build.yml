@@ -1,0 +1,57 @@
+name: Build
+
+on:
+  push:
+    branches:
+    - main
+
+  pull_request:
+    branches:
+    - main
+
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    strategy:
+      matrix:
+        os: [macos-13, ubuntu-22.04, windows-2022]
+        include:
+          - os: macos-13
+            out-dir-suffix: macos
+          - os: ubuntu-22.04
+            out-dir-suffix: ubuntu
+          - os: windows-2022
+            out-dir-suffix: windows
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup MultiToolTask
+      if: matrix.os == 'windows-2022'
+      run: |
+        Add-Content "$env:GITHUB_ENV" 'UseMultiToolTask=true'
+        Add-Content "$env:GITHUB_ENV" 'EnforceProcessCountAcrossBuilds=true'
+
+    - name: Set MACOSX_DEPLOYMENT_TARGET
+      if: runner.os == 'macOS'
+      run: |
+        echo 'MACOSX_DEPLOYMENT_TARGET=13.0' >> $GITHUB_ENV
+
+    - name: Configure
+      shell: pwsh
+      run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
+
+    - name: Build
+      run: cmake --build build --config Release
+
+    - name: Install
+      run: cmake --install build --config Release --prefix prefix
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: mfx-base-app-${{ matrix.out-dir-suffix }}
+        path: ${{ github.workspace }}/build/prefix/

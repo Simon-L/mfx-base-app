@@ -114,7 +114,7 @@ if(${PREFIX_SYSTEM} STREQUAL "Linux")
 elseif(${PREFIX_SYSTEM} STREQUAL "Windows")
     set(APP_FILE "app.bat")
 elseif(${PREFIX_SYSTEM} STREQUAL "Darwin")
-    set(APP_FILE "app.sh")
+    set(APP_FILE "app.command")
 endif()
 
 add_custom_target(add_app ALL
