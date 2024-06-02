@@ -65,7 +65,7 @@ target_compile_features(mfx-base-app_exe PRIVATE c_std_99)
 
 set(LUAROCKS prefix/bin/luarocks)
 set(OPENSSL_OPTS )
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+if (${PREFIX_SYSTEM} STREQUAL "Windows")
     add_custom_target(hererocks ALL
         COMMAND python ${CMAKE_SOURCE_DIR}/hererocks.py prefix --target vs -j @v2.1 -rlatest --verbose
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
@@ -109,8 +109,23 @@ add_custom_target(add_imgui ALL
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
+if(${PREFIX_SYSTEM} STREQUAL "Linux")
+    set(APP_FILE "app.sh")
+elseif(${PREFIX_SYSTEM} STREQUAL "Windows")
+    set(APP_FILE "app.bat")
+elseif(${PREFIX_SYSTEM} STREQUAL "Darwin")
+    set(APP_FILE "app.sh")
+endif()
+
+add_custom_target(add_app ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/app ${CMAKE_BINARY_DIR}/prefix/app
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/${APP_FILE} ${CMAKE_BINARY_DIR}/prefix/
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+
 add_dependencies(luarocks_modules hererocks)
 add_dependencies(add_imgui hererocks)
+add_dependencies(add_app hererocks)
 add_dependencies(mfx-base-app_exe hererocks)
 # add_dependencies(mfx-base-app_lib hererocks)
 
