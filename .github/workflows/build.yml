@@ -29,6 +29,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Install libgl
+      if: matrix.os == 'ubuntu-22.04'
+      run: |
+        sudo apt update
+        sudo apt install libgl-dev libxext-dev
 
     - name: Setup MultiToolTask
       if: matrix.os == 'windows-2022'
@@ -42,8 +47,13 @@ jobs:
         echo 'MACOSX_DEPLOYMENT_TARGET=13.0' >> $GITHUB_ENV
 
     - name: Configure
-      shell: pwsh
-      run: cmake -Bbuild
+      shell: bash
+      run: |
+        cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=11
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          bash -c "sed 's/abs(a.x/fabs(a.x/g' -i build/_deps/luajit-imgui-src/cimnodes_r/ImNodes/ImNodes.cpp"
+          bash -c "sed 's/abs(a.y/fabs(a.y/g' -i build/_deps/luajit-imgui-src/cimnodes_r/ImNodes/ImNodes.cpp"
+        fi
 
     - name: Build
       run: cmake --build build --verbose --config Release
