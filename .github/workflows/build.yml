@@ -43,15 +43,15 @@ jobs:
 
     - name: Configure
       shell: pwsh
-      run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
+      run: cmake -Bbuild
 
     - name: Build
-      run: cmake --build build --config Release
+      run: cmake --build build --verbose --config Release
 
     - name: Install
-      run: cmake --install build --config Release --prefix prefix
+      run: cmake --install build --config Release --prefix build/install
 
     - uses: actions/upload-artifact@v4
       with:
         name: mfx-base-app-${{ matrix.out-dir-suffix }}
-        path: ${{ github.workspace }}/build/prefix/
+        path: ${{ github.workspace }}/build/install/
