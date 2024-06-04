@@ -4,9 +4,6 @@ include(cmake/prelude.cmake)
 
 project(
     mfx-base-app
-    VERSION 0.1.0
-    DESCRIPTION "Short description"
-    HOMEPAGE_URL "https://example.com/"
     LANGUAGES C
 )
 
@@ -21,21 +18,6 @@ if( NOT DEFINED PREFIX_SYSTEM)
 else()
     message(NOTICE "Using ${PREFIX_SYSTEM} as target system" )
 endif()
-
-# URLs
-if (${PREFIX_SYSTEM} STREQUAL "Windows")
-    set(FILE_IMGUI lua-imgui-windows.zip)
-elseif (${PREFIX_SYSTEM} STREQUAL "Linux")
-    set(FILE_IMGUI lua-imgui-ubuntu.zip)
-elseif (${PREFIX_SYSTEM} STREQUAL "Darwin")
-    set(FILE_IMGUI lua-imgui-macos.zip)
-endif()
-set(URL_IMGUI https://nightly.link/Simon-L/imgui-luajit-setup/workflows/build/main/${FILE_IMGUI})
-
-file(
-    DOWNLOAD ${URL_IMGUI} ${CMAKE_BINARY_DIR}/${FILE_IMGUI}
-    SHOW_PROGRESS
-)
 
 # ---- Declare library ----
 
@@ -53,6 +35,31 @@ file(
 # target_compile_features(mfx-base-app_lib PUBLIC c_std_99)
 
 # ---- Declare executable ----
+
+include(cmake/CPM.cmake)
+
+set(IMPL_GLFW OFF)
+set(IMPL_SDL ON)
+set(IMPL_OPENGL2 OFF)
+set(IMPL_OPENGL3 ON)
+set(IMGUI_FREETYPE OFF)
+set(IMPL_EXTRAS ON)
+set(LUAJIT_BIN ${CMAKE_BINARY_DIR}/sdl2-imgui)
+
+CPMAddPackage(NAME LuaJIT-GL
+    GITHUB_REPOSITORY sonoro1234/LuaJIT-GL
+    GIT_TAG main
+)
+
+CPMAddPackage(NAME LuaJIT-SDL2
+    GITHUB_REPOSITORY Simon-L/LuaJIT-SDL2
+    GIT_TAG master
+)
+
+CPMAddPackage(NAME LuaJIT-ImGui
+    GITHUB_REPOSITORY Simon-L/LuaJIT-ImGui
+    GIT_TAG docking_inter
+)
 
 add_executable(mfx-base-app_exe source/main.c)
 add_executable(mfx-base-app::exe ALIAS mfx-base-app_exe)
@@ -100,15 +107,6 @@ add_custom_target(luarocks_modules ALL
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
-add_custom_target(add_imgui ALL
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/ig   
-    COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_BINARY_DIR}/ig ${CMAKE_COMMAND} -E tar xzf ${CMAKE_BINARY_DIR}/${FILE_IMGUI}
-    COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_BINARY_DIR}/ig ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/ig/lua ${CMAKE_BINARY_DIR}/prefix/share/lua/5.1
-    COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_BINARY_DIR}/ig ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/ig/lua
-    COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_BINARY_DIR}/ig ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/ig ${CMAKE_BINARY_DIR}/prefix/bin
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-)
-
 if(${PREFIX_SYSTEM} STREQUAL "Linux")
     set(APP_FILE "app.sh")
 elseif(${PREFIX_SYSTEM} STREQUAL "Windows")
@@ -119,13 +117,12 @@ endif()
 
 add_custom_target(add_app ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/app ${CMAKE_BINARY_DIR}/prefix/app
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/${APP_FILE} ${CMAKE_BINARY_DIR}/prefix/
     COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_BINARY_DIR}/prefix/hererocks.manifest
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
 add_dependencies(luarocks_modules hererocks)
-add_dependencies(add_imgui hererocks)
+add_dependencies(add_app cimgui_sdl)
 add_dependencies(add_app hererocks)
 add_dependencies(mfx-base-app_exe hererocks)
 # add_dependencies(mfx-base-app_lib hererocks)
@@ -135,6 +132,25 @@ add_dependencies(mfx-base-app_exe hererocks)
 if(NOT CMAKE_SKIP_INSTALL_RULES)
   include(cmake/install-rules.cmake)
 endif()
+
+set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
+include (InstallRequiredSystemLibraries)
+INSTALL(FILES $<TARGET_FILE:cimgui_sdl> $<TARGET_FILE:SDL2> DESTINATION bin)
+INSTALL(FILES ${LuaJIT-GL_SOURCE_DIR}/gl.lua ${LuaJIT-SDL2_SOURCE_DIR}/sdl2_ffi.lua ${LuaJIT-SDL2_SOURCE_DIR}/sdlAudioPlayer.lua DESTINATION share/lua/5.1)
+INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/prefix/ DESTINATION .)
+INSTALL(DIRECTORY ${LuaJIT-ImGui_SOURCE_DIR}/lua/imgui DESTINATION share/lua/5.1/)
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/${APP_FILE}
+        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+        DESTINATION ${CMAKE_BINARY_DIR}/prefix/)
+install(
+    TARGETS mfx-base-app_exe
+    DESTINATION .
+)
+if(UNIX)
+    install(FILES ${CMAKE_BINARY_DIR}/prefix/bin/lua
+        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+        DESTINATION bin)
+endif(UNIX)
 
 # ---- Developer mode ----
 
