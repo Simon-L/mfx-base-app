@@ -20,7 +20,9 @@ jobs:
           - os: macos-13
             out-dir-suffix: macos
           - os: ubuntu-22.04
-            out-dir-suffix: ubuntu
+            out-dir-suffix: ubuntu-x86_64
+          - os: ubuntu-22.04-arm
+            out-dir-suffix: ubuntu-arm64
           - os: windows-2022
             out-dir-suffix: windows
 
@@ -83,7 +85,8 @@ jobs:
         shell: bash
         run: |
           tar -C mfx-base-app-macos -czf mfx-base-app-macos.tar.gz .
-          tar -C mfx-base-app-ubuntu -czf mfx-base-app-ubuntu.tar.gz .
+          tar -C mfx-base-app-ubuntu-x86_64 -czf mfx-base-app-ubuntu-x86_64.tar.gz .
+          tar -C mfx-base-app-ubuntu-arm64 -czf mfx-base-app-ubuntu-arm64.tar.gz .
           tar -C mfx-base-app-windows -czf mfx-base-app-windows.tar.gz .
       - name: Upload release assets
         uses: svenstaro/upload-release-action@v2
