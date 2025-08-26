@@ -23,11 +23,12 @@ import tempfile
 import textwrap
 import zipfile
 
+
 try:
-    from urllib2 import urlopen, URLError
+    from urllib2 import URLError, urlopen
 except ImportError:
-    from urllib.request import urlopen
     from urllib.error import URLError
+    from urllib.request import urlopen
 
 if os.name == "nt":
     try:
@@ -241,12 +242,13 @@ def get_default_cache():
 
         return os.path.join(cache_root, "HereRocks", "Cache")
     else:
-        home = os.path.expanduser("~")
+        cache_root = os.getenv("XDG_CACHE_HOME", "~/.cache")
+        expanded_cache_root = os.path.expanduser(cache_root)
 
-        if home == "~":
+        if expanded_cache_root.startswith("~"):
             return None
-        else:
-            return os.path.join(home, ".cache", "hererocks")
+
+        return os.path.join(expanded_cache_root, "hererocks")
 
 def download(url, filename):
     response = urlopen(url, timeout=opts.timeout)
@@ -908,17 +910,17 @@ class RioLua(Lua):
         "5.1", "5.1.1", "5.1.2", "5.1.3", "5.1.4", "5.1.5",
         "5.2.0", "5.2.1", "5.2.2", "5.2.3", "5.2.4",
         "5.3.0", "5.3.1", "5.3.2", "5.3.3", "5.3.4", "5.3.5", "5.3.6",
-        "5.4.0", "5.4.1", "5.4.2", "5.4.3", "5.4.4", "5.4.5", "5.4.6"
+        "5.4.0", "5.4.1", "5.4.2", "5.4.3", "5.4.4", "5.4.5", "5.4.6", "5.4.7", "5.4.8"
     ]
     translations = {
-        "5": "5.4.1",
+        "5": "5.4.8",
         "5.1": "5.1.5",
         "5.1.0": "5.1",
         "5.2": "5.2.4",
         "5.3": "5.3.6",
-        "5.4": "5.4.6",
-        "^": "5.4.6",
-        "latest": "5.4.6"
+        "5.4": "5.4.8",
+        "^": "5.4.8",
+        "latest": "5.4.8"
     }
     checksums = {
         "lua-5.1.tar.gz"        : "7f5bb9061eb3b9ba1e406a5aa68001a66cb82bac95748839dc02dd10048472c1",
@@ -946,6 +948,8 @@ class RioLua(Lua):
         "lua-5.4.4.tar.gz"      : "164c7849653b80ae67bec4b7473b884bf5cc8d2dca05653475ec2ed27b9ebf61",
         "lua-5.4.5.tar.gz"      : "59df426a3d50ea535a460a452315c4c0d4e1121ba72ff0bdde58c2ef31d6f444",
         "lua-5.4.6.tar.gz"      : "7d5ea1b9cb6aa0b59ca3dde1c6adcb57ef83a1ba8e5432c0ecd06bf439b3ad88",
+        "lua-5.4.7.tar.gz"      : "9fbf5e28ef86c69858f6d3d34eccc32e911c1a28b4120ff3e84aaa70cfbf1e30",
+        "lua-5.4.8.tar.gz"      : "4f18ddae154e793e46eeab727c59ef1c0c0c2b744e7b94219710d76f530629ae",
     }
     all_patches = {
         "When loading a file, Lua may call the reader function again after it returned end of input": """
@@ -1830,6 +1834,124 @@ class RioLua(Lua):
                      break;
                    }
                    default: return;
+        """,
+        "Wrong code generation for indices with comparisons": """
+            lcode.c:
+            @@ -985,7 +985,7 @@
+             ** or it is a constant.
+             */
+             void luaK_exp2val (FuncState *fs, expdesc *e) {
+            -  if (hasjumps(e))
+            +  if (e->k == VJMP || hasjumps(e))
+                 luaK_exp2anyreg(fs, e);
+               else
+                 luaK_dischargevars(fs, e);
+        """,
+        "Wrong limit for local variables in 16-bit systems": """
+            lparser.c:
+            @@ -198,7 +198,7 @@ static int new_localvar (LexState *ls, TString *name) {
+               checklimit(fs, dyd->actvar.n + 1 - fs->firstlocal,
+                              MAXVARS, "local variables");
+               luaM_growvector(L, dyd->actvar.arr, dyd->actvar.n + 1,
+            -                  dyd->actvar.size, Vardesc, USHRT_MAX, "local variables");
+            +                  dyd->actvar.size, Vardesc, SHRT_MAX, "local variables");
+               var = &dyd->actvar.arr[dyd->actvar.n++];
+               var->vd.kind = VDKREG;  /* default */
+               var->vd.name = name;
+        """,
+        "An emergency GC can collect the __newindex of a metatable (if the metatable is a weak table) while that field is being used in a table update": """
+            lvm.c:
+            @@ -339,7 +339,10 @@ void luaV_finishset (lua_State *L, const TValue *t, TValue *key,
+                   lua_assert(isempty(slot));  /* slot must be empty */
+                   tm = fasttm(L, h->metatable, TM_NEWINDEX);  /* get metamethod */
+                   if (tm == NULL) {  /* no metamethod? */
+            +        sethvalue2s(L, L->top.p, h);  /* anchor 't' */
+            +        L->top.p++;  /* assume EXTRA_STACK */
+                     luaH_finishset(L, h, key, slot, val);  /* set new value */
+            +        L->top.p--;
+                     invalidateTMcache(h);
+                     luaC_barrierback(L, obj2gco(h), val);
+                     return;
+        """,
+        "'luaD_seterrorobj' should not raise errors, because it is called unprotected": """
+            ldo.c:
+            @@ -94,10 +94,6 @@ void luaD_seterrorobj (lua_State *L, int errcode, StkId oldtop) {
+                   setsvalue2s(L, oldtop, G(L)->memerrmsg); /* reuse preregistered msg. */
+                   break;
+                 }
+            -    case LUA_ERRERR: {
+            -      setsvalue2s(L, oldtop, luaS_newliteral(L, "error in error handling"));
+            -      break;
+            -    }
+                 case LUA_OK: {  /* special case only for closing upvalues */
+                   setnilvalue(s2v(oldtop));  /* no error message */
+                   break;
+            @@ -198,6 +194,16 @@ static void correctstack (lua_State *L) {
+             /* some space for error handling */
+             #define ERRORSTACKSIZE	(LUAI_MAXSTACK + 200)
+
+            +
+            +/* raise an error while running the message handler */
+            +l_noret luaD_errerr (lua_State *L) {
+            +  TString *msg = luaS_newliteral(L, "error in error handling");
+            +  setsvalue2s(L, L->top.p, msg);
+            +  L->top.p++;  /* assume EXTRA_STACK */
+            +  luaD_throw(L, LUA_ERRERR);
+            +}
+            +
+            +
+             /*
+             ** Reallocate the stack to a new size, correcting all pointers into it.
+             ** In ISO C, any pointer use after the pointer has been deallocated is
+            @@ -247,7 +253,7 @@ int luaD_growstack (lua_State *L, int n, int raiseerror) {
+                    a stack error; cannot grow further than that. */
+                 lua_assert(stacksize(L) == ERRORSTACKSIZE);
+                 if (raiseerror)
+            -      luaD_throw(L, LUA_ERRERR);  /* error inside message handler */
+            +      luaD_errerr(L);  /* error inside message handler */
+                 return 0;  /* if not 'raiseerror', just signal it */
+               }
+               else if (n < LUAI_MAXSTACK) {  /* avoids arithmetic overflows */
+            ldo.h:
+            @@ -60,6 +60,7 @@
+             /* type of protected functions, to be ran by 'runprotected' */
+             typedef void (*Pfunc) (lua_State *L, void *ud);
+
+            +LUAI_FUNC l_noret luaD_errerr (lua_State *L);
+             LUAI_FUNC void luaD_seterrorobj (lua_State *L, int errcode, StkId oldtop);
+             LUAI_FUNC int luaD_protectedparser (lua_State *L, ZIO *z, const char *name,
+                                                               const char *mode);
+            lstate.c:
+            @@ -166,7 +166,7 @@ void luaE_checkcstack (lua_State *L) {
+               if (getCcalls(L) == LUAI_MAXCCALLS)
+                 luaG_runerror(L, "C stack overflow");
+               else if (getCcalls(L) >= (LUAI_MAXCCALLS / 10 * 11))
+            -    luaD_throw(L, LUA_ERRERR);  /* error while handling stack error */
+            +    luaD_errerr(L);  /* error while handling stack error */
+             }
+
+
+        """,
+        "message handler can be overwritten by a closing variable when closing a thread": """
+            lstate.c:
+            @@ -272,7 +272,9 @@ static void close_state (lua_State *L) {
+                 luaC_freeallobjects(L);  /* just collect its objects */
+               else {  /* closing a fully built state */
+                 L->ci = &L->base_ci;  /* unwind CallInfo list */
+            +    L->errfunc = 0;   /* stack unwind can "throw away" the error function */
+                 luaD_closeprotected(L, 1, LUA_OK);  /* close all upvalues */
+            +    L->top.p = L->stack.p + 1;  /* empty the stack to run finalizers */
+                 luaC_freeallobjects(L);  /* collect all objects */
+                 luai_userstateclose(L);
+               }
+            @@ -328,6 +330,7 @@ int luaE_resetthread (lua_State *L, int status) {
+               if (status == LUA_YIELD)
+                 status = LUA_OK;
+               L->status = LUA_OK;  /* so it can run __close metamethods */
+            +  L->errfunc = 0;   /* stack unwind can "throw away" the error function */
+               status = luaD_closeprotected(L, 1, status);
+               if (status != LUA_OK)  /* errors? */
+                 luaD_seterrorobj(L, status, L->stack.p + 1);
         """
     }
     patches_per_version = {
@@ -1893,6 +2015,13 @@ class RioLua(Lua):
                 "read overflow in 'l_strcmp'",
                 "Call hook may be called twice when count hook yields",
                 "Wrong line number for function calls"
+            ],
+            "7": [
+                "Wrong code generation for indices with comparisons",
+                "Wrong limit for local variables in 16-bit systems",
+                "An emergency GC can collect the __newindex of a metatable (if the metatable is a weak table) while that field is being used in a table update",
+                "'luaD_seterrorobj' should not raise errors, because it is called unprotected",
+                "message handler can be overwritten by a closing variable when closing a thread"
             ]
         },
     }
@@ -2406,7 +2535,8 @@ class LuaRocks(Program):
         "3.8.0",
         "3.9.0", "3.9.1", "3.9.2",
         "3.10.0",
-        "3.11.0",
+        "3.11.0", "3.11.1",
+        "3.12.0", "3.12.1", "3.12.2",
     ]
     translations = {
         "2": "2.4.4",
@@ -2415,7 +2545,7 @@ class LuaRocks(Program):
         "2.2": "2.2.2",
         "2.3": "2.3.0",
         "2.4": "2.4.4",
-        "3": "3.9.1",
+        "3": "3.12.2",
         "3.0": "3.0.4",
         "3.1": "3.1.3",
         "3.2": "3.2.1",
@@ -2427,9 +2557,10 @@ class LuaRocks(Program):
         "3.8": "3.8.0",
         "3.9": "3.9.2",
         "3.10": "3.10.0",
-        "3.11": "3.11.0",
-        "^": "3.11.0",
-        "latest": "3.11.0"
+        "3.11": "3.11.1",
+        "3.12": "3.12.2",
+        "^": "3.12.2",
+        "latest": "3.12.2"
     }
     checksums = {
         "luarocks-2.0.10.tar.gz"   : "11731dfe6e210a962cb2a857b8b2f14a9ab1043e13af09a1b9455b486401b46e",
@@ -2514,6 +2645,14 @@ class LuaRocks(Program):
         "luarocks-3.10.0-win32.zip": "6f29d578b0ed607d225cff9decce8cd3ee09a04fe6ceabf8a8eed05e786c928b",
         "luarocks-3.11.0.tar.gz"   : "25f56b3c7272fb35b869049371d649a1bbe668a56d24df0a66e3712e35dd44a6",
         "luarocks-3.11.0-win32.zip": "85ddc54c57f6e5a66abb1d913f055a11ab320c701b3781957bc380ae34b4f652",
+        "luarocks-3.11.1.tar.gz"   : "c3fb3d960dffb2b2fe9de7e3cb004dc4d0b34bb3d342578af84f84325c669102",
+        "luarocks-3.11.1-win32.zip": "d5fb16455ad58c0f22621876d9c9f618216997e582f018a39008dd804daa0a85",
+        "luarocks-3.12.0.tar.gz"   : "3d4c8acddf9b975e77da68cbf748d5baf483d0b6e9d703a844882db25dd61cdf",
+        "luarocks-3.12.0-win32.zip": "e2ebc63dd1b731057a1453c49519a8bee0332ee2084318826a9dc02b690b351b",
+        "luarocks-3.12.1.tar.gz"   : "f56b85a2a7a481f0321845807b79a05237860b04e4a9d186da632770029b3290",
+        "luarocks-3.12.1-win32.zip": "9a2e65167e8887dd5e7225eb9caa5fc3958d587e9e000554e32a8449678b36b2 ",
+        "luarocks-3.12.2.tar.gz"   : "b0e0c85205841ddd7be485f53d6125766d18a81d226588d2366931e9a1484492",
+        "luarocks-3.12.2-win32.zip": "735f478c529aca5c52f16913b47b5a25dff8c1fb399cd3dbe179a73841d1bad7",
     }
 
     def get_download_name(self):
@@ -2956,8 +3095,8 @@ def main(argv=None):
     parser.add_argument(
         "-l", "--lua", help="Version of standard PUC-Rio Lua to install. "
         "Version can be specified as a version number, e.g. 5.2 or 5.3.1. "
-        "Versions 5.1.0 - 5.4.6 are supported. "
-        "'latest' and '^' are aliases for 5.4.6. "
+        "Versions 5.1.0 - 5.4.8 are supported. "
+        "'latest' and '^' are aliases for 5.4.8. "
         "If the argument contains '@', sources will be downloaded "
         "from a git repo using URI before '@' and using part after '@' as git reference "
         "to checkout, 'master' by default. "
@@ -2986,8 +3125,8 @@ def main(argv=None):
     parser.add_argument(
         "-r", "--luarocks", help="Version of LuaRocks to install. "
         "Version can be specified in the same way as for standard Lua. "
-        "Versions 2.0.8 - 3.11.0 are supported. "
-        "'latest' and '^' are aliases for 3.11.0. "
+        "Versions 2.0.8 - 3.12.2 are supported. "
+        "'latest' and '^' are aliases for 3.12.2. "
         "Default git repo is https://github.com/luarocks/luarocks. "
         "Note that Lua 5.2 is not supported in LuaRocks 2.0.8, "
         "Lua 5.3 is supported only since LuaRocks 2.2.0, Lua 5.4 is supported only since "
