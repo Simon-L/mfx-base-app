@@ -21,6 +21,7 @@ include(cmake/CPM.cmake)
 
 set(IMPL_GLFW OFF)
 set(IMPL_SDL ON)
+set(IMPL_SDL3 OFF)
 set(IMPL_OPENGL2 OFF)
 set(IMPL_OPENGL3 ON)
 set(IMGUI_FREETYPE OFF)
