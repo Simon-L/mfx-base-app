@@ -37,7 +37,7 @@ jobs:
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
       run: |
         sudo apt update
-        sudo apt install libgl-dev libxext-dev libasound2-dev libwayland-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libudev-dev fcitx-libs-dev libpipewire-0.3-dev libdecor-0-dev libusb-1.0.0-dev libhidapi-libusb0 libhidapi-dev libxkbcommon-dev
+        sudo apt install libgl-dev libxext-dev libasound2-dev libwayland-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libudev-dev fcitx-libs-dev libpipewire-0.3-dev libdecor-0-dev libusb-1.0-0-dev libhidapi-libusb0 libhidapi-dev libxkbcommon-dev
 
     - name: Setup MultiToolTask
       if: matrix.os == 'windows-2022'
