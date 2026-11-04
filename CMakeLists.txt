@@ -10,31 +10,12 @@ project(
 include(cmake/project-is-top-level.cmake)
 include(cmake/variables.cmake)
 
-# ---- Make prefix rules ----
-
 if( NOT DEFINED PREFIX_SYSTEM)
     set(PREFIX_SYSTEM ${CMAKE_SYSTEM_NAME})
     message(NOTICE "Using ${CMAKE_SYSTEM_NAME} as target system" )
 else()
     message(NOTICE "Using ${PREFIX_SYSTEM} as target system" )
 endif()
-
-# ---- Declare library ----
-
-# add_library(
-#     mfx-base-app_lib OBJECT
-#     source/lib.c
-# )
-# 
-# target_include_directories(
-#     mfx-base-app_lib ${warning_guard}
-#     PUBLIC
-#     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/source>"
-# )
-# 
-# target_compile_features(mfx-base-app_lib PUBLIC c_std_99)
-
-# ---- Declare executable ----
 
 include(cmake/CPM.cmake)
 
@@ -46,18 +27,21 @@ set(IMGUI_FREETYPE OFF)
 set(IMPL_EXTRAS ON)
 set(LUAJIT_BIN ${CMAKE_BINARY_DIR}/sdl2-imgui)
 
+set(SDL_HIDAPI_LIBUSB ON)
+set(SDL_LIBSAMPLERATE OFF)
+
 CPMAddPackage(NAME LuaJIT-GL
     GITHUB_REPOSITORY sonoro1234/LuaJIT-GL
     GIT_TAG main
 )
 
 CPMAddPackage(NAME LuaJIT-SDL2
-    GITHUB_REPOSITORY Simon-L/LuaJIT-SDL2
+    GITHUB_REPOSITORY sonoro1234/LuaJIT-SDL2
     GIT_TAG master
 )
 
 CPMAddPackage(NAME LuaJIT-ImGui
-    GITHUB_REPOSITORY Simon-L/LuaJIT-ImGui
+    GITHUB_REPOSITORY sonoro1234/LuaJIT-ImGui
     GIT_TAG docking_inter
 )
 
