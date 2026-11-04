@@ -87,10 +87,7 @@ jobs:
       - name: Check
         shell: bash
         run: |
-          tar -C mfx-base-app-macos -czf mfx-base-app-macos.tar.gz .
-          tar -C mfx-base-app-ubuntu-x86_64 -czf mfx-base-app-ubuntu-x86_64.tar.gz .
           tar -C mfx-base-app-ubuntu-arm64 -czf mfx-base-app-ubuntu-arm64.tar.gz .
-          tar -C mfx-base-app-windows -czf mfx-base-app-windows.tar.gz .
       - name: Upload release assets
         uses: svenstaro/upload-release-action@v2
         with:
