@@ -17,17 +17,16 @@ jobs:
   build:
     strategy:
       matrix:
-        # os: [macos-13, ubuntu-22.04, windows-2022]
-        os: [ubuntu-22.04]
+        os: [macos-13, ubuntu-22.04, windows-2022]
         include:
-          # - os: macos-13
-          #   out-dir-suffix: macos
-          # - os: ubuntu-22.04
-          #   out-dir-suffix: ubuntu-x86_64
+          - os: macos-13
+            out-dir-suffix: macos
+          - os: ubuntu-22.04
+            out-dir-suffix: ubuntu-x86_64
           - os: ubuntu-22.04-arm
             out-dir-suffix: ubuntu-arm64
-          # - os: windows-2022
-          #   out-dir-suffix: windows
+          - os: windows-2022
+            out-dir-suffix: windows
 
     runs-on: ${{ matrix.os }}
 
@@ -74,6 +73,7 @@ jobs:
     name: Publish Nightly
     runs-on: ubuntu-22.04
     needs: [ build ]
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Delete old release assets
         uses: mknejp/delete-release-assets@v1
@@ -87,7 +87,10 @@ jobs:
       - name: Check
         shell: bash
         run: |
+          tar -C mfx-base-app-macos -czf mfx-base-app-macos.tar.gz .
+          tar -C mfx-base-app-ubuntu-x86_64 -czf mfx-base-app-ubuntu-x86_64.tar.gz .
           tar -C mfx-base-app-ubuntu-arm64 -czf mfx-base-app-ubuntu-arm64.tar.gz .
+          tar -C mfx-base-app-windows -czf mfx-base-app-windows.tar.gz .
       - name: Upload release assets
         uses: svenstaro/upload-release-action@v2
         with:
