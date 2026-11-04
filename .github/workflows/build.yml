@@ -17,16 +17,17 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [macos-13, ubuntu-22.04, windows-2022]
+        # os: [macos-13, ubuntu-22.04, windows-2022]
+        os: ubuntu-22.04-arm
         include:
-          - os: macos-13
-            out-dir-suffix: macos
-          - os: ubuntu-22.04
-            out-dir-suffix: ubuntu-x86_64
+          # - os: macos-13
+          #   out-dir-suffix: macos
+          # - os: ubuntu-22.04
+          #   out-dir-suffix: ubuntu-x86_64
           - os: ubuntu-22.04-arm
             out-dir-suffix: ubuntu-arm64
-          - os: windows-2022
-            out-dir-suffix: windows
+          # - os: windows-2022
+          #   out-dir-suffix: windows
 
     runs-on: ${{ matrix.os }}
 
@@ -36,7 +37,7 @@ jobs:
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
       run: |
         sudo apt update
-        sudo apt install libgl-dev libxext-dev libasound2-dev libwayland-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libudev-dev fcitx-libs-dev libpipewire-0.3-dev libdecor-0-dev libusb-1.0-0-dev libhidapi-libusb0 libhidapi-dev libxkbcommon-dev
+        sudo apt install libfreetype-dev libgl-dev libxext-dev libasound2-dev libwayland-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libudev-dev fcitx-libs-dev libpipewire-0.3-dev libdecor-0-dev libusb-1.0-0-dev libhidapi-libusb0 libhidapi-dev libxkbcommon-dev
 
     - name: Setup MultiToolTask
       if: matrix.os == 'windows-2022'

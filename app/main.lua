@@ -27,7 +27,7 @@ sdl.gL_SetAttribute(sdl.GL_DOUBLEBUFFER, 1);
 sdl.gL_SetAttribute(sdl.GL_DEPTH_SIZE, 24);
 sdl.gL_SetAttribute(sdl.GL_STENCIL_SIZE, 8);
 sdl.gL_SetAttribute(sdl.GL_CONTEXT_MAJOR_VERSION, 3);
-sdl.gL_SetAttribute(sdl.GL_CONTEXT_MINOR_VERSION, 2);
+sdl.gL_SetAttribute(sdl.GL_CONTEXT_MINOR_VERSION, 1);
 local current = ffi.new("SDL_DisplayMode[1]")
 sdl.getCurrentDisplayMode(0, current);
 local window = sdl.createWindow("ImGui SDL2+OpenGL3 example", sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, 700, 500, sdl.WINDOW_OPENGL+sdl.WINDOW_RESIZABLE); 
