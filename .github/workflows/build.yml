@@ -49,6 +49,7 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         echo 'MACOSX_DEPLOYMENT_TARGET=13.0' >> $GITHUB_ENV
+        brew install freetype openssl
 
     - name: Configure
       shell: bash
