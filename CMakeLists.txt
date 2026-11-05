@@ -1,14 +1,9 @@
 cmake_minimum_required(VERSION 3.14)
 
-include(cmake/prelude.cmake)
-
 project(
     mfx-base-app
     LANGUAGES C
 )
-
-include(cmake/project-is-top-level.cmake)
-include(cmake/variables.cmake)
 
 if( NOT DEFINED PREFIX_SYSTEM)
     set(PREFIX_SYSTEM ${CMAKE_SYSTEM_NAME})
@@ -51,15 +46,6 @@ if(${PREFIX_SYSTEM} STREQUAL "Linux")
 elseif(${PREFIX_SYSTEM} STREQUAL "Darwin")
     target_include_directories(cimgui_base PUBLIC /opt/homebrew/include/freetype2)
 endif()
-
-add_executable(mfx-base-app_exe source/main.c)
-add_executable(mfx-base-app::exe ALIAS mfx-base-app_exe)
-
-set_property(TARGET mfx-base-app_exe PROPERTY OUTPUT_NAME mfx-base-app)
-
-target_compile_features(mfx-base-app_exe PRIVATE c_std_99)
-
-# target_link_libraries(mfx-base-app_exe PRIVATE mfx-base-app_lib)
 
 set(LUAROCKS prefix/bin/luarocks)
 set(OPENSSL_OPTS )
@@ -115,10 +101,6 @@ add_custom_target(add_app ALL
 add_dependencies(luarocks_modules hererocks)
 add_dependencies(add_app cimgui_sdl)
 add_dependencies(add_app hererocks)
-add_dependencies(mfx-base-app_exe hererocks)
-# add_dependencies(mfx-base-app_lib hererocks)
-
-# ---- Install rules ----
 
 if(NOT CMAKE_SKIP_INSTALL_RULES)
   include(cmake/install-rules.cmake)
@@ -133,25 +115,8 @@ INSTALL(DIRECTORY ${LuaJIT-ImGui_SOURCE_DIR}/lua/imgui DESTINATION share/lua/5.1
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/${APP_FILE}
         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
         DESTINATION .)
-install(
-    TARGETS mfx-base-app_exe
-    DESTINATION .
-)
 if(UNIX)
     install(FILES ${CMAKE_BINARY_DIR}/prefix/bin/lua
         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
         DESTINATION bin)
 endif(UNIX)
-
-# ---- Developer mode ----
-
-if(NOT mfx-base-app_DEVELOPER_MODE)
-  return()
-elseif(NOT PROJECT_IS_TOP_LEVEL)
-  message(
-      AUTHOR_WARNING
-      "Developer mode is intended for developers of mfx-base-app"
-  )
-endif()
-
-include(cmake/dev-mode.cmake)
