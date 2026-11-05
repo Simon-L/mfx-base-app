@@ -46,6 +46,8 @@ CPMAddPackage(NAME LuaJIT-ImGui
     GIT_TAG docking_inter
 )
 
+target_include_directories(cimgui_base PUBLIC /usr/include/freetype2)
+
 add_executable(mfx-base-app_exe source/main.c)
 add_executable(mfx-base-app::exe ALIAS mfx-base-app_exe)
 
