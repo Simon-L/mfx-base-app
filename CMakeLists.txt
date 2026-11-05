@@ -46,7 +46,11 @@ CPMAddPackage(NAME LuaJIT-ImGui
     GIT_TAG docking_inter
 )
 
-target_include_directories(cimgui_base PUBLIC /usr/include/freetype2)
+if(${PREFIX_SYSTEM} STREQUAL "Linux")
+    target_include_directories(cimgui_base PUBLIC /usr/include/freetype2)
+elseif(${PREFIX_SYSTEM} STREQUAL "Darwin")
+    target_include_directories(cimgui_base PUBLIC /opt/homebrew/include/freetype2)
+endif()
 
 add_executable(mfx-base-app_exe source/main.c)
 add_executable(mfx-base-app::exe ALIAS mfx-base-app_exe)

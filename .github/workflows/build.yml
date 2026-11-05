@@ -18,12 +18,12 @@ jobs:
     strategy:
       matrix:
         # os: [macos-13, ubuntu-22.04, windows-2022]
-        os: [ubuntu-22.04-arm]
+        os: [ubuntu-22.04-arm, macos-13, ubuntu-22.04]
         include:
-          # - os: macos-13
-          #   out-dir-suffix: macos
-          # - os: ubuntu-22.04
-          #   out-dir-suffix: ubuntu-x86_64
+          - os: macos-13
+            out-dir-suffix: macos
+          - os: ubuntu-22.04
+            out-dir-suffix: ubuntu-x86_64
           - os: ubuntu-22.04-arm
             out-dir-suffix: ubuntu-arm64
           # - os: windows-2022
