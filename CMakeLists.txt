@@ -102,10 +102,6 @@ add_dependencies(luarocks_modules hererocks)
 add_dependencies(add_app cimgui_sdl)
 add_dependencies(add_app hererocks)
 
-if(NOT CMAKE_SKIP_INSTALL_RULES)
-  include(cmake/install-rules.cmake)
-endif()
-
 set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
 include (InstallRequiredSystemLibraries)
 INSTALL(TARGETS cimgui_sdl SDL2 DESTINATION bin)
