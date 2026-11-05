@@ -41,14 +41,16 @@ CPMAddPackage(NAME LuaJIT-ImGui
     GIT_TAG docking_inter
 )
 
+set(OPENSSL_OPTS )
+
 if(${PREFIX_SYSTEM} STREQUAL "Linux")
     target_include_directories(cimgui_base PUBLIC /usr/include/freetype2)
 elseif(${PREFIX_SYSTEM} STREQUAL "Darwin")
     target_include_directories(cimgui_base PUBLIC /opt/homebrew/include/freetype2)
+    set(OPENSSL_OPTS OPENSSL_DIR="/opt/homebrew/")
 endif()
 
 set(LUAROCKS prefix/bin/luarocks)
-set(OPENSSL_OPTS )
 if (${PREFIX_SYSTEM} STREQUAL "Windows")
     add_custom_target(hererocks ALL
         COMMAND python ${CMAKE_SOURCE_DIR}/hererocks.py prefix --target vs -j @v2.1 -rlatest --verbose
