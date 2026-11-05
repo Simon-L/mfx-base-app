@@ -47,6 +47,7 @@ if(${PREFIX_SYSTEM} STREQUAL "Linux")
     target_include_directories(cimgui_base PUBLIC /usr/include/freetype2)
 elseif(${PREFIX_SYSTEM} STREQUAL "Darwin")
     target_include_directories(cimgui_base PUBLIC /opt/homebrew/include/freetype2)
+    target_link_directories(cimgui_base PUBLIC /opt/homebrew/lib)
     set(OPENSSL_OPTS OPENSSL_DIR="/opt/homebrew/")
 endif()
 
